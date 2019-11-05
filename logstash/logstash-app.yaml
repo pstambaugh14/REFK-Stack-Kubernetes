@@ -1,0 +1,183 @@
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: logstash
+#  namespace: kube-logging
+#  labels:
+#    app: logstash  
+#data:
+#  logstash.conf: |-
+#    input {
+#      redis {
+#        port => 6379
+#        host => "redis.kube-logging.svc.cluster.local"
+#        data_type => "list"
+#        key => "logstash"
+#      }
+#    }
+#    output {
+#      elasticsearch {
+#        hosts => ["http://elasticsearch.kube-logging.svc.cluster.local:9200"]
+#        index => "logstash-%{+YYYY.MM.dd}"
+#      }
+#    }    
+#  logstash.yml: |-
+#    http.host: "0.0.0.0"
+#    http.port: 9600
+#    path.config: /usr/share/logstash/pipeline
+#    xpack.monitoring.enabled: false
+#    log.level: debug
+#    path.settings: /usr/share/logstash/config
+#    path.data: /usr/share/logstash/data
+#
+#    http.host: "0.0.0.0"
+#    http.port: 9600
+#    path.config: /usr/share/logstash/config
+#    xpack.monitoring.enabled: false
+#    log.level: debug
+#    path.config: /usr/share/logstash/pipeline
+#    path.data: /usr/share/logstash/data  
+---
+#apiVersion: extensions/v1beta1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: kube-logging
+spec:
+  selector:
+    matchLabels:
+      app: logstash        
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+#      - image: docker.elastic.co/logstash/logstash:7.4.0
+#      - image: docker.elastic.co/logstash/logstash:7.4.1
+      - image: pstambaugh14/logstash-re-image
+        name: logstash
+        ports:
+        - name: logstash
+          containerPort: 5044
+          protocol: TCP
+        - name: logstashhttp
+          containerPort: 9600
+          protocol: TCP
+#        - name: redis
+#          containerPort: 6379  
+          #port: 5044
+          #protocol: TCP
+        volumeMounts:
+        - mountPath: /usr/share/logstash/config/log4j2.properties
+          name: log4j2
+          subPath: log4j2.properties
+          readOnly: true
+        - mountPath: /usr/share/logstash/logs
+          name: logs
+        - name: config
+          mountPath: /usr/share/logstash/config/logstash.yml
+          subPath: logstash.yml
+          readOnly: true
+        - name: pipeline
+          mountPath: /usr/share/logstash/pipeline/
+          readOnly: true
+        args:
+        - -f
+        - /usr/share/logstash/pipeline/logstash.conf
+        resources:
+          limits:
+#            memory: 2Gi
+#            memory: 1Gi
+#            memory: 512m
+            memory: 1024Mi             
+            cpu: "200m"
+          requests:
+#            memory: 2Gi
+#            memory: 1Gi            
+#            memory: 512m            
+            memory: 1024Mi
+            cpu: "200m"
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: log4j2
+        configMap:
+          name: example-logstash-config
+          items:
+          - key: log4j2.properties
+            path: log4j2.properties
+      - name: pipeline
+        configMap:
+          name: example-logstash-config
+          items:
+          - key: logstash.conf
+            path: logstash.conf
+      - name: config
+        configMap:
+          name: example-logstash-config
+          items:
+          - key: logstash.yml
+            path: logstash.yml
+---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: logstash
+#  namespace: kube-logging
+#  labels:
+#    app: logstash
+#spec:
+#  type: LoadBalancer
+#  selector:
+#    app: logstash
+#  ports:
+#  - name: logstash
+#    port: 5044
+#    targetPort: 5044
+#    protocol: TCP
+#kind: Service
+#apiVersion: v1
+#metadata:
+#  name: logstash
+#  namespace: kube-logging
+#  labels:
+#    app: logstash
+#spec:
+#  selector:
+#    app: logstash
+#  clusterIP: None
+#  ports:
+#   - port: 5044
+#      protocol: TCP
+#      targetPort: 5044
+#      name: logstash
+#    - port: 9600
+#      protocol: TCP
+#      targetPort: 9600
+#      name: logstashhttp  
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: logstash
+  namespace: kube-logging
+  labels:
+    app: logstash
+spec:
+  selector:
+    app: logstash
+  ports:
+  - protocol: TCP
+    port: 5044
+    targetPort: 5044
+    name: logstash
+  - protocol: TCP
+    port: 9600
+    targetPort: 9600
+    name: logstashhttp
+  type: ClusterIP
+---
+      

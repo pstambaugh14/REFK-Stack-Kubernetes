@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: fluentd
+  namespace: kube-logging
+  #Label is assigned as app:redis
+  labels:
+    app: fluentd
+spec:
+  #Spec: Selector: assigned to 'app: redis' to allow Service to select pods with label
+  selector:
+    app: fluentd
+  #When StatefulSet is applied to this Service,  the Service will return DNS A records that point to Elasticsearch Pods with the app: elasticsearch label.
+  #ClusterIP: None means that it is a headless service
+  clusterIP: None
+  #Ports designated for API and inter-node comms
+#  ports:
+#    - port: xxx
+#      name: fluentd
+

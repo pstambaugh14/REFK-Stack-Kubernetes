@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: kube-logging
+  #Label is assigned as app:redis
+  labels:
+    app: redis
+spec:
+  #Spec: Selector: assigned to 'app: redis' to allow Service to select pods with label
+  selector:
+    app: redis
+  #When StatefulSet is applied to this Service,  the Service will return DNS A records that point to Elasticsearch Pods with the app: elasticsearch label.
+  #ClusterIP: None means that it is a headless service
+  clusterIP: None
+  #Ports designated for API and inter-node comms
+  ports:
+    - port: 6379
+      name: redis
+      protocol: TCP
+      targetPort: 6379
+#      nodePort: 30102
+    - port: 5044
+      protocol: TCP
+      targetPort: 5044
+      name: logstash

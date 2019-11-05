@@ -1,0 +1,10 @@
+configMapGenerator:
+- name: example-fluentd-config
+  namespace: kube-logging
+  files:
+  - fluent.conf
+  - kubernetes.conf
+  - prometheus.conf
+  - systemd.conf  
+resources:
+- fluentd.yaml

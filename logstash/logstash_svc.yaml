@@ -1,0 +1,21 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: logstash
+spec:
+  type: NodePort
+  selector:
+    app: logstash
+  ports:
+  - protocol: TCP
+    port: 5044
+    targetPort: 5044
+    #nodePort is what needs to be configured for connectors
+    nodePort: 30102
+    name: logstash
+  - protocol: TCP
+    port: 9600
+    targetPort: 9600
+    name: logstashapi
+---

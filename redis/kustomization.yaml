@@ -1,0 +1,7 @@
+configMapGenerator:
+- name: example-redis-config
+  namespace: kube-logging
+  files:
+  - redis-config
+resources:
+- redis-pod.yaml

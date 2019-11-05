@@ -1,0 +1,10 @@
+configMapGenerator:
+- name: example-logstash-config
+  namespace: kube-logging
+  files:
+  - logstash.conf
+  - logstash.yml  
+  - log4j2.properties  
+resources:
+- logstash-app.yaml
+

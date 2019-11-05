@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash
+  namespace: kube-logging
+#  labels:
+#    app: logstash  
+data:
+  logstash.conf: |-
+    input {
+      redis {
+        port => 6379
+        codec => "json"
+        host => "redis.kube-logging.svc.cluster.local"
+        type => "redis"
+        data_type => "list"
+      }
+    }
+    output {
+      elasticsearch {
+        hosts => "elasticsearch.kube-logging.svc.cluster.local:9200"
+        cluster => "k8s-logs"
+        index => "logstash-%{+YYYY.MM.dd}"
+        sniffing => false
+      }
+    }
+    path.config: /usr/share/logstash/pipeline
+  logstash.yml: |-
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/config
+    xpack.monitoring.enabled: false

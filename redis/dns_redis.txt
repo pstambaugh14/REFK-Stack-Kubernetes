@@ -1,0 +1,1 @@
+redis.kube-logging.svc.cluster.local
